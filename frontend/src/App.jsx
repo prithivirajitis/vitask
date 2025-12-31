@@ -11,6 +11,7 @@ function App() {
   const [isGlobalEdit, setIsGlobalEdit] = useState(false);
   const [editValues, setEditValues] = useState({}); 
   const [user, setUser] = useState(null);
+  const APP_VERSION = "v1.0.0";
 
   const fetchTodos = async () => {
     const res = await fetch(`${API_URL}/api/todos`);
@@ -82,9 +83,12 @@ function App() {
     <div style={styles.container}>
       <nav style={styles.navBar}>
         <div style={styles.logoGroup}>
-          <h1 style={styles.logoText}>ViTask</h1>
-          <p style={styles.taglineText}>Nothing is impossible</p>
-        </div>
+  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+    <h1 style={styles.logoText}>ViTask</h1>
+    <span style={{ color: '#fff', fontSize: '0.7rem', opacity: 0.8 }}>{APP_VERSION}</span>
+  </div>
+  <p style={styles.taglineText}>Nothing is impossible</p>
+</div>
         
         <div style={styles.profileGroup}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
