@@ -11,7 +11,8 @@ function App() {
 
   const fetchTodos = async () => {
     // Note: Change localhost to your production URL later during deployment
-    const res = await fetch('http://localhost:5000/api/todos');
+    const API_URL = "https://vitask-backend.onrender.com"; // Replace with your ACTUAL Render URL
+    const res = await fetch(`${API_URL}/api/todos`);
     const data = await res.json();
     setTodos(data);
   };
@@ -23,7 +24,7 @@ function App() {
   };
 
   const handleBulkDelete = async () => {
-    const res = await fetch('http://localhost:5000/api/todos/delete-bulk', {
+    const res = await fetch(`${API_URL}/api/todos/delete-bulk`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ids: selectedIds })
@@ -33,7 +34,7 @@ function App() {
   };
 
   const handleBulkArchive = async () => {
-    const res = await fetch('http://localhost:5000/api/todos/archive-bulk', {
+    const res = await fetch(`${API_URL}/api/todos/archive-bulk`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ids: selectedIds })
@@ -44,7 +45,7 @@ function App() {
 
   const handleBulkSave = async () => {
     const updates = Object.entries(editValues).map(([id, task]) => ({ id, task }));
-    const res = await fetch('http://localhost:5000/api/todos/bulk-save', {
+    const res = await fetch(`${API_URL}/api/todos/bulk-save`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ updates })
