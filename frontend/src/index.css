@@ -1,0 +1,13 @@
+/* Removes browser default spacing and forces full-screen coverage */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #c0392b; /* This matches your Chilli Red exactly */
+  overflow-x: hidden; /* Prevents any horizontal white slivers from appearing */
+}
+
+* {
+  box-sizing: border-box; /* Ensures padding doesn't break the 100% width */
+}
