@@ -11,7 +11,7 @@ function App() {
   const [isGlobalEdit, setIsGlobalEdit] = useState(false);
   const [editValues, setEditValues] = useState({}); 
   const [user, setUser] = useState(null);
-  const APP_VERSION = "v1.0.0";
+  const APP_VERSION = "v1.1.0";
 
   const fetchTodos = async () => {
     const res = await fetch(`${API_URL}/api/todos`);

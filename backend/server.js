@@ -31,6 +31,17 @@ app.get('/api/todos', async (req, res) => {
     res.json(todos); // This sends: [{_id: '123', task: 'Buy milk'}, ...]
 });
 
+// Add a new task
+app.post('/api/todos', async (req, res) => {
+  try {
+    const { task } = req.body; // Getting the task text from the frontend
+    const newTodo = new Todo({ task }); // Creating a new MongoDB document
+    await newTodo.save(); // Saving to the database
+    res.json(newTodo); // Sending the saved task back to frontend
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add task' });
+  }
+});
 // Add this in backend/server.js
 app.get('/', (req, res) => {
     res.send("Backend API is running. Go to /api/todos to see data.");
