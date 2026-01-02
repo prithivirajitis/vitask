@@ -91,12 +91,22 @@ function App() {
         <div style={styles.profileGroup}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             {/* New Donate Button Integration */}
-            <button 
-              onClick={() => window.open('upi://pay?pa=prithiviraj.it@okhdfcbank&pn=Prithiviraj&cu=INR', '_self')} 
-              style={styles.donateBtn}
-            >
-              Support ViTask 🇮🇳
-            </button>
+<button 
+  onClick={() => {
+    const upiUrl = 'upi://pay?pa=prithiviraj.it@okhdfcbank&pn=Prithiviraj&cu=INR';
+    
+    // 1. If user is on Mobile, try to open the app directly
+    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      window.location.href = upiUrl;
+    } else {
+      // 2. If user is on Desktop, open the QR Code image
+      window.open('/qr-code.jpg', '_blank');
+    }
+  }} 
+  style={styles.donateBtn}
+>
+  Support ViTask 🇮🇳
+</button>
             
             <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
             <div style={styles.profileCircle}>

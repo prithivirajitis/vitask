@@ -21,3 +21,7 @@ npm-debug.log*
 .vscode/
 .idea/
 .DS_Store
+
+mongodbpassword.txt
+.env
+*.log
