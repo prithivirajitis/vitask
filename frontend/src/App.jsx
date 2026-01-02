@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import Login from './Login'; 
 
-const API_URL = "https://vitask-backend.onrender.com";
+const API_URL = "https://vitask-backend.onrender.com/api/todos";
 
 function App() {
   const [todos, setTodos] = useState([]);
