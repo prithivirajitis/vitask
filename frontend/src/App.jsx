@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 const API_URL = "https://your-backend-url.onrender.com/api/todos";
-const APP_VERSION = "v2.2.1";
+const APP_VERSION = "v2.2.0";
 
 function App() {
   const [todos, setTodos] = useState([]);
