@@ -1,215 +1,153 @@
-import { useEffect, useState } from 'react'
-import Login from './Login'; 
+import React, { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 
-const API_URL = "https://vitask-backend.onrender.com";
+const API_URL = "https://your-backend-url.onrender.com/api/todos";
+const APP_VERSION = "v2.2.1";
 
 function App() {
   const [todos, setTodos] = useState([]);
-  const [input, setInput] = useState("");
-  const [selectedIds, setSelectedIds] = useState([]);
-  const [isGlobalEdit, setIsGlobalEdit] = useState(false);
-  const [editValues, setEditValues] = useState({}); 
-  const [user, setUser] = useState(null);
-  const APP_VERSION = "v2.0.0";
+  const [task, setTask] = useState("");
+  // Check localStorage on startup to stay logged in
+  const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('isLoggedIn') === 'true');
+  const [password, setPassword] = useState("");
+
+  // --- 1. SESSION MANAGEMENT (5 Minute Idle Logout) ---
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem('isLoggedIn');
+    setIsLoggedIn(false);
+  }, []);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    let timeout;
+    const resetTimer = () => {
+      clearTimeout(timeout);
+      // 5 minutes = 5 * 60 * 1000 milliseconds
+      timeout = setTimeout(handleLogout, 300000); 
+    };
+
+    // Listen for any user activity
+    window.addEventListener('mousemove', resetTimer);
+    window.addEventListener('keypress', resetTimer);
+
+    resetTimer(); // Start timer on login
+
+    return () => {
+      window.removeEventListener('mousemove', resetTimer);
+      window.removeEventListener('keypress', resetTimer);
+      clearTimeout(timeout);
+    };
+  }, [isLoggedIn, handleLogout]);
+
+  // --- 2. DATA FETCHING ---
+  useEffect(() => {
+    if (isLoggedIn) fetchTodos();
+  }, [isLoggedIn]);
 
   const fetchTodos = async () => {
-    const res = await fetch(`${API_URL}/api/todos`);
-    const data = await res.json();
-    setTodos(data);
+    const res = await axios.get(API_URL);
+    setTodos(res.data);
   };
 
-  useEffect(() => { fetchTodos(); }, []);
-
-  const addTodo = async () => {
-    if (!input) return;
-    const res = await fetch(`${API_URL}/api/todos`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ task: input })
-    });
-    const newTodo = await res.json();
-    setTodos([...todos, newTodo]);
-    setInput(""); 
+  const handleLogin = () => {
+    if (password === "YOUR_PASSWORD") {
+      localStorage.setItem('isLoggedIn', 'true');
+      setIsLoggedIn(true);
+    } else {
+      alert("Wrong password!");
+    }
   };
 
-  const toggleSelect = (id) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  const handleSupport = () => {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.location.href = "upi://pay?pa=YOURID@okaxis&pn=ViTask&cu=INR";
+    } else {
+      window.open('/qr-code.jpg', '_blank');
+    }
   };
 
-  const handleBulkDelete = async () => {
-    const res = await fetch(`${API_URL}/api/todos/delete-bulk`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: selectedIds })
-    });
-    setTodos(await res.json());
-    setSelectedIds([]);
-  };
+  // ... (Keep your addTask, toggleTodo, deleteTodo functions here) ...
 
-  const handleBulkArchive = async () => {
-    const res = await fetch(`${API_URL}/api/todos/archive-bulk`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: selectedIds })
-    });
-    setTodos(await res.json());
-    setSelectedIds([]);
-  };
-
-  const handleBulkSave = async () => {
-    const updates = Object.entries(editValues).map(([id, task]) => ({ id, task }));
-    const res = await fetch(`${API_URL}/api/todos/bulk-save`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ updates })
-    });
-    setTodos(await res.json());
-    setIsGlobalEdit(false);
-    setEditValues({});
-  };
-
-  const handleLogout = () => { setUser(null); };
-
-  const activeTasks = todos.filter(t => t.status !== 'archived');
-  const archivedTasks = todos.filter(t => t.status === 'archived');
-
-  if (!user) {
-    return <Login setUser={setUser} />;
+  if (!isLoggedIn) {
+    return (
+      <div style={styles.loginContainer}>
+        <h2 style={styles.header}>ViTask {APP_VERSION}</h2>
+        <input 
+          type="password" 
+          placeholder="Enter Password" 
+          style={styles.input}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button onClick={handleLogin} style={styles.button}>Login</button>
+      </div>
+    );
   }
 
   return (
     <div style={styles.container}>
-      <nav style={styles.navBar}>
-        <div style={styles.logoGroup}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-            <h1 style={styles.logoText}>ViTask</h1>
-            <span style={{ color: '#fff', fontSize: '0.7rem', opacity: 0.8 }}>{APP_VERSION}</span>
-          </div>
-          <p style={styles.taglineText}>Nothing is impossible</p>
-        </div>
-        
-        <div style={styles.profileGroup}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            {/* New Donate Button Integration */}
-<button 
-  onClick={() => {
-    const upiUrl = 'upi://pay?pa=prithiviraj.it@okhdfcbank&pn=Prithiviraj&cu=INR';
-    
-    // 1. If user is on Mobile, try to open the app directly
-    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-      window.location.href = upiUrl;
-    } else {
-      // 2. If user is on Desktop, open the QR Code image
-      window.open('/qr-code.jpg', '_blank');
-    }
-  }} 
-  style={styles.donateBtn}
->
-  Support ViTask 🇮🇳
-</button>
-            
-            <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
-            <div style={styles.profileCircle}>
-              <img 
-                src={user.photoURL || "https://ui-avatars.com/api/?name=" + user.displayName} 
-                alt="Profile" 
-                style={styles.profileImg}
-                onError={(e) => {
-                  e.target.src = "https://ui-avatars.com/api/?name=Vi+Task&background=d35400&color=fff";
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <div style={styles.mainWrapper}>
-        <div style={styles.card}>
-          <h2 style={styles.title}>ACTIVE TASKS</h2>
-
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-            <input 
-              style={{ ...styles.editInput, padding: '10px', borderRadius: '6px' }}
-              placeholder="What needs to be done?"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && addTodo()} 
-            />
-            <button onClick={addTodo} style={{ ...styles.saveBtn, padding: '10px 20px' }}>
-              Add Task
-            </button>
-          </div>
-
-          <div style={styles.globalActions}>
-            <button onClick={() => setIsGlobalEdit(true)} style={styles.editBtn}>Edit All</button>
-            <button onClick={handleBulkSave} style={styles.saveBtn}>Save</button>
-            <button onClick={handleBulkArchive} style={styles.completeBtn}>Complete</button>
-            <button onClick={handleBulkDelete} style={styles.deleteBtn}>Delete</button>
-          </div>
-
-          <ul style={styles.list}>
-            {activeTasks.map(todo => (
-              <li key={todo._id} style={styles.listItem}>
-                <input 
-                  type="checkbox" 
-                  style={styles.checkbox}
-                  checked={selectedIds.includes(todo._id)} 
-                  onChange={() => toggleSelect(todo._id)} 
-                />
-                {isGlobalEdit ? (
-                  <input 
-                    style={styles.editInput}
-                    defaultValue={todo.task}
-                    onChange={(e) => setEditValues({...editValues, [todo._id]: e.target.value})}
-                  />
-                ) : (
-                  <span style={styles.taskText}>{todo.task}</span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div style={styles.archiveCard}>
-          <h3 style={styles.archiveTitle}>Archive</h3>
-          <ul style={styles.list}>
-            {archivedTasks.map(todo => (
-              <li key={todo._id} style={styles.archiveItem}>• {todo.task}</li>
-            ))}
-          </ul>
-        </div>
+      <div style={styles.topRow}>
+        <h2 style={styles.header}>ViTask {APP_VERSION}</h2>
+        <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
       </div>
+
+      <div style={styles.inputGroup}>
+        <input 
+          value={task} 
+          onChange={(e) => setTask(e.target.value)} 
+          placeholder="What needs to be done?" 
+          style={styles.input}
+        />
+        <button onClick={addTask} style={styles.button}>Add</button>
+      </div>
+
+      <div style={styles.list}>
+        {todos.map(todo => (
+          <div key={todo._id} style={styles.todoItem}>
+            <span 
+              onClick={() => toggleTodo(todo._id, todo.status)}
+              style={{...styles.taskText, textDecoration: todo.status === 'completed' ? 'line-through' : 'none'}}
+            >
+              {todo.task}
+            </span>
+            <button onClick={() => deleteTodo(todo._id)} style={styles.deleteBtn}>Delete</button>
+          </div>
+        ))}
+      </div>
+
+      <button onClick={handleSupport} style={styles.supportBtn}>
+        Support ViTask 🇮🇳
+      </button>
     </div>
   );
 }
 
+// --- 3. REFACTORED STYLES OBJECT ---
 const styles = {
-  container: { minHeight: '100vh', width: '100%', background: '#c0392b', display: 'flex', flexDirection: 'column', overflowX: 'hidden' },
-  navBar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 5%', background: 'rgba(0,0,0,0.2)', width: '100%', boxSizing: 'border-box' },
-  logoGroup: { display: 'flex', flexDirection: 'column' },
-  logoText: { color: '#fff', fontSize: '2rem', margin: 0, fontFamily: '"Brush Script MT", cursive' },
-  taglineText: { color: '#fdf2e9', margin: '-2px 0 0 2px', fontSize: '0.8rem' },
-  profileGroup: { display: 'flex', alignItems: 'center' },
-  profileCircle: { width: '45px', height: '45px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #fff', boxShadow: '0 4px 10px rgba(0,0,0,0.3)', backgroundColor: '#eee' },
-  profileImg: { width: '100%', height: '100%', objectFit: 'cover' },
-  logoutBtn: { background: 'transparent', border: '1px solid #ffffffaa', color: '#fff', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: '600' },
-  donateBtn: { background: '#f1c40f', color: '#2c3e50', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' },
-  mainWrapper: { display: 'flex', gap: '20px', padding: '20px 5%', alignItems: 'flex-start', width: '100%', boxSizing: 'border-box' },
-  card: { backgroundColor: '#ffffff', padding: '20px 30px', borderRadius: '12px', flex: '2', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', borderTop: '6px solid #d35400', maxWidth: '800px' },
-  title: { fontSize: '1.2rem', color: '#2c3e50', marginBottom: '15px', fontWeight: '800' },
-  globalActions: { display: 'flex', gap: '8px', marginBottom: '15px', paddingBottom: '10px', borderBottom: '1px solid #f0f0f0' },
-  list: { listStyle: 'none', padding: 0, margin: 0 },
-  listItem: { display: 'flex', gap: '10px', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #f9f9f9' },
-  checkbox: { width: '14px', height: '14px', cursor: 'pointer' },
-  taskText: { fontSize: '0.95rem', color: '#444', lineHeight: '1.2' },
-  editInput: { padding: '4px', fontSize: '0.9rem', flex: 1, border: '1px solid #ddd' },
-  archiveCard: { backgroundColor: '#fdf2e9', padding: '20px', borderRadius: '12px', flex: '0.8', marginTop: '55px', boxShadow: '0 5px 15px rgba(0,0,0,0.1)' },
-  archiveTitle: { fontSize: '1rem', color: '#a04000', marginBottom: '10px' },
-  archiveItem: { fontSize: '0.85rem', color: '#7f8c8d', padding: '4px 0' },
-  editBtn: { background: '#e67e22', color: '#fff', border: 'none', padding: '5px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' },
-  saveBtn: { background: '#27ae60', color: '#fff', border: 'none', padding: '5px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' },
-  completeBtn: { background: '#2980b9', color: '#fff', border: 'none', padding: '5px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' },
-  deleteBtn: { background: '#ff0000', color: '#fff', border: '1px solid #fff', padding: '5px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }
+  container: { padding: '20px', maxWidth: '400px', margin: 'auto', fontFamily: 'Arial' },
+  loginContainer: { display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '100px' },
+  topRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  header: { color: '#333' },
+  inputGroup: { display: 'flex', gap: '10px', marginBottom: '20px' },
+  input: { padding: '10px', borderRadius: '5px', border: '1px solid #ddd', flex: 1 },
+  button: { padding: '10px 15px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' },
+  logoutBtn: { backgroundColor: 'transparent', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.8rem' },
+  todoItem: { display: 'flex', justifyContent: 'space-between', padding: '10px', borderBottom: '1px solid #eee' },
+  taskText: { cursor: 'pointer', flex: 1 },
+  deleteBtn: { backgroundColor: '#ff4d4d', color: '#fff', border: 'none', borderRadius: '3px', padding: '5px 10px', cursor: 'pointer' },
+  supportBtn: {
+    marginTop: '30px',
+    width: '100%',
+    padding: '12px',
+    backgroundColor: '#ffcc00',
+    color: '#000',
+    border: 'none',
+    borderRadius: '8px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    fontSize: '1rem'
+  }
 };
 
 export default App;

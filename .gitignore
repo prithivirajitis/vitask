@@ -25,3 +25,5 @@ npm-debug.log*
 mongodbpassword.txt
 .env
 *.log
+.vercel
+.env*.local
