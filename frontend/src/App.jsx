@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import Login from './Login'; 
 
-// 1. Define API_URL once at the very top
 const API_URL = "https://vitask-backend.onrender.com";
 
 function App() {
@@ -11,7 +10,7 @@ function App() {
   const [isGlobalEdit, setIsGlobalEdit] = useState(false);
   const [editValues, setEditValues] = useState({}); 
   const [user, setUser] = useState(null);
-  const APP_VERSION = "v1.1.0";
+  const APP_VERSION = "v2.0.0";
 
   const fetchTodos = async () => {
     const res = await fetch(`${API_URL}/api/todos`);
@@ -21,7 +20,6 @@ function App() {
 
   useEffect(() => { fetchTodos(); }, []);
 
-  // 2. The Add Task Function
   const addTodo = async () => {
     if (!input) return;
     const res = await fetch(`${API_URL}/api/todos`, {
@@ -83,15 +81,23 @@ function App() {
     <div style={styles.container}>
       <nav style={styles.navBar}>
         <div style={styles.logoGroup}>
-  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-    <h1 style={styles.logoText}>ViTask</h1>
-    <span style={{ color: '#fff', fontSize: '0.7rem', opacity: 0.8 }}>{APP_VERSION}</span>
-  </div>
-  <p style={styles.taglineText}>Nothing is impossible</p>
-</div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+            <h1 style={styles.logoText}>ViTask</h1>
+            <span style={{ color: '#fff', fontSize: '0.7rem', opacity: 0.8 }}>{APP_VERSION}</span>
+          </div>
+          <p style={styles.taglineText}>Nothing is impossible</p>
+        </div>
         
         <div style={styles.profileGroup}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            {/* New Donate Button Integration */}
+            <button 
+              onClick={() => window.open('upi://pay?pa=prithiviraj.it@okhdfcbank&pn=Prithiviraj&cu=INR', '_self')} 
+              style={styles.donateBtn}
+            >
+              Support ViTask 🇮🇳
+            </button>
+            
             <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
             <div style={styles.profileCircle}>
               <img 
@@ -111,7 +117,6 @@ function App() {
         <div style={styles.card}>
           <h2 style={styles.title}>ACTIVE TASKS</h2>
 
-          {/* 3. ADD TASK INPUT UI (Restored here) */}
           <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
             <input 
               style={{ ...styles.editInput, padding: '10px', borderRadius: '6px' }}
@@ -168,7 +173,6 @@ function App() {
   );
 }
 
-// STYLES (Kept exactly as you had them)
 const styles = {
   container: { minHeight: '100vh', width: '100%', background: '#c0392b', display: 'flex', flexDirection: 'column', overflowX: 'hidden' },
   navBar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 5%', background: 'rgba(0,0,0,0.2)', width: '100%', boxSizing: 'border-box' },
@@ -179,6 +183,7 @@ const styles = {
   profileCircle: { width: '45px', height: '45px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #fff', boxShadow: '0 4px 10px rgba(0,0,0,0.3)', backgroundColor: '#eee' },
   profileImg: { width: '100%', height: '100%', objectFit: 'cover' },
   logoutBtn: { background: 'transparent', border: '1px solid #ffffffaa', color: '#fff', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: '600' },
+  donateBtn: { background: '#f1c40f', color: '#2c3e50', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' },
   mainWrapper: { display: 'flex', gap: '20px', padding: '20px 5%', alignItems: 'flex-start', width: '100%', boxSizing: 'border-box' },
   card: { backgroundColor: '#ffffff', padding: '20px 30px', borderRadius: '12px', flex: '2', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', borderTop: '6px solid #d35400', maxWidth: '800px' },
   title: { fontSize: '1.2rem', color: '#2c3e50', marginBottom: '15px', fontWeight: '800' },
