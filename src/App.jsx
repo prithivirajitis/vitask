@@ -14,7 +14,7 @@ const firebaseConfig = {
   measurementId: "G-2DQECPZ78K"
 };
 
-const API_URL = "https://your-backend-on-render.com/api/todos";
+const API_URL = "https://vitask-backend.onrender.com";
 const APP_VERSION = "v2.3.1";
 
 // Initialize Firebase
@@ -64,7 +64,9 @@ function App() {
 
   // --- 4. RENDER ---
   if (!user) {
-    return (
+    return (git add src/App.jsx
+      git commit -m "fix: point to actual render backend"
+      git push origin main
       <div style={styles.center}>
         <h1 style={styles.mainTitle}>ViTaskFamily</h1>
         <p style={styles.tagline}>Shared tasks for a stronger home.</p>
