@@ -15,7 +15,7 @@ const firebaseConfig = {
 };
 
 const API_URL = "https://your-backend-on-render.com/api/todos";
-const APP_VERSION = "v2.3.0";
+const APP_VERSION = "v2.3.1";
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
